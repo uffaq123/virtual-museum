@@ -1,0 +1,222 @@
+DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Accessible Virtual Tour</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header role="banner" style="background-color:#333; color:#fff; padding:20px; text-align:center;">
+  <h1 id="tourTitle">Virtual Tour of the Grand Museum</h1>
+  <button id="startTour" aria-label="Start the tour" style="margin:10px; padding:10px;">Start Tour</button>
+  <button id="pauseTour" aria-label="Pause narration" style="margin:10px; padding:10px;">Pause</button>
+  <button id="resumeTour" aria-label="Resume narration" style="margin:10px; padding:10px;">Resume</button>
+</header>
+
+<main role="main" aria-labelledby="tourTitle" style="text-align:center; margin:20px;">
+  <!-- Scene display -->
+  <section id="scene" style="margin:auto; max-width:800px;">
+    <img id="locationImage" src="placeholder1.jpg" alt="Museum Entrance" style="width:100%; border-radius:8px; border:2px solid #ccc;" />
+  </section>
+
+  <!-- Map / Navigation overview -->
+  <section aria-label="Scene map" style="margin-top:30px; padding:10px; background-color:#fafafa; border-radius:8px;">
+    <h2>Tour Map</h2>
+    <div id="mapContainer" style="display:flex; justify-content:center; flex-wrap:wrap; gap:10px;">
+      <!-- Scene buttons will be generated here dynamically -->
+    </div>
+  </section>
+
+  <!-- Controls -->
+  <nav aria-label="Tour controls" style="margin-top:20px;">
+    <button id="prev" aria-label="Previous scene" style="margin:10px; padding:10px;">Previous</button>
+    <button id="next" aria-label="Next scene" style="margin:10px; padding:10px;">Next</button>
+    <button id="repeat" aria-label="Repeat description" style="margin:10px; padding:10px;">Repeat</button>
+  </nav>
+</main>
+
+<!-- Tips Section -->
+<section style="background-color:#eee; padding:20px; margin:20px; border-radius:8px;">
+  <h2>Additional Tips</h2>
+  <ul>
+    <li>Replace placeholder images with actual images of your virtual tour scenes for a richer experience.</li>
+    <li>Optimize images for web to ensure fast loading times. Use formats like JPEG or WebP.</li>
+    <li>Test the website with screen readers (like NVDA or VoiceOver) to ensure accessibility features work correctly.</li>
+    <li>Use descriptive, clear scene descriptions for better understanding.</li>
+    <li>Consider adding more scenes and descriptions to expand your virtual tour.</li>
+    <li>Ensure all interactive elements are accessible via keyboard navigation.</li>
+    <li>Use relative units in CSS for better responsiveness across devices.</li>
+  </ul>
+</section>
+
+<script src="script.js"></script>
+</body>
+</html>
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0;
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+}
+
+button {
+  font-size: 16px;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  background-color: #333;
+  color: #fff;
+  padding: 10px 20px;
+  transition: background-color 0.3s;
+}
+
+button:hover, button:focus {
+  background-color: #555;
+}
+
+button:focus {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+}
+
+section {
+  max-width: 800px;
+  margin: auto;
+  padding: 10px;
+}
+
+h2 {
+  margin-top: 20px;
+  color: #333;
+}
+const tourScenes = [
+  {
+    image: "placeholder1.jpg", // Replace with actual image URL
+    alt: "Museum Entrance",
+    description: "Welcome to the grand museum. You see the main entrance with tall pillars and a large wooden door."
+  },
+  {
+    image: "placeholder2.jpg", // Replace with actual image URL
+    alt: "Main Hall",
+    description: "You are now inside the main hall, with high ceilings and beautiful chandeliers hanging from above."
+  },
+  {
+    image: "placeholder3.jpg", // Replace with actual image URL
+    alt: "Exhibit Room",
+    description: "This room contains ancient artifacts from different civilizations, with glass displays lining the walls."
+  }
+];
+
+let currentIndex = 0;
+let utterance = null;
+const totalScenes = tourScenes.length;
+
+// Get DOM elements
+const imageElement = document.getElementById('locationImage');
+const startBtn = document.getElementById('startTour');
+const nextBtn = document.getElementById('next');
+const prevBtn = document.getElementById('prev');
+const repeatBtn = document.getElementById('repeat');
+const pauseBtn = document.getElementById('pauseTour');
+const resumeBtn = document.getElementById('resumeTour');
+const mapContainer = document.getElementById('mapContainer');
+
+// Generate map buttons dynamically
+tourScenes.forEach((scene, index) => {
+  const btn = document.createElement('button');
+  btn.innerText = `Scene ${index + 1}`;
+  btn.setAttribute('aria-label', `Go to scene ${index + 1}`);
+  btn.style.padding = '8px 12px';
+  btn.style.borderRadius = '4px';
+  btn.onclick = () => {
+    currentIndex = index;
+    loadScene(currentIndex);
+  };
+  mapContainer.appendChild(btn);
+});
+
+// Function to speak text
+function speak(text) {
+  window.speechSynthesis.cancel();
+  utterance = new SpeechSynthesisUtterance(text);
+  window.speechSynthesis.speak(utterance);
+}
+
+// Function to load a scene
+function loadScene(index) {
+  const scene = tourScenes[index];
+  imageElement.src = scene.image;
+  imageElement.alt = scene.alt;
+  // Speak description
+  speak(scene.description);
+}
+
+// Initialize the tour
+function startTour() {
+  currentIndex = 0;
+  loadScene(currentIndex);
+}
+
+// Navigation functions
+function nextScene() {
+  if (currentIndex < totalScenes - 1) {
+    currentIndex++;
+    loadScene(currentIndex);
+  } else {
+    window.speechSynthesis.cancel();
+    alert("You have reached the end of the tour.");
+  }
+}
+
+function prevScene() {
+  if (currentIndex > 0) {
+    currentIndex--;
+    loadScene(currentIndex);
+  } else {
+    alert("This is the first scene.");
+  }
+}
+
+function repeatScene() {
+  if (utterance && window.speechSynthesis.speaking) {
+    window.speechSynthesis.cancel();
+  }
+  speak(tourScenes[currentIndex].description);
+}
+
+// Event Listeners
+startBtn.onclick = startTour;
+nextBtn.onclick = nextScene;
+prevBtn.onclick = prevScene;
+repeatBtn.onclick = repeatScene;
+
+pauseBtn.onclick = () => {
+  window.speechSynthesis.pause();
+};
+resumeBtn.onclick = () => {
+  window.speechSynthesis.resume();
+};
+
+// Keyboard controls for accessibility
+document.addEventListener('keydown', (e) => {
+  switch (e.key) {
+    case 'ArrowRight':
+      nextScene();
+      break;
+    case 'ArrowLeft':
+      prevScene();
+      break;
+    case 'Enter':
+    case ' ':
+      repeatScene();
+      break;
+    case 'p':
+      window.speechSynthesis.pause();
+      break;
+    case 'r':
+      window.speechSynthesis.resume();
+      break;
+  }
+});
